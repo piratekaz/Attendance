@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Attendance</title>
+<style>
+:root{--bg:#f6f7fb;--sf:#fff;--tx:#0f172a;--mu:#64748b;--bd:#e8eaf3;--ac:#4f46e5;--ac2:#7c3aed;--ok:#16a34a;--warn:#d97706;--bad:#dc2626;--none:#94a3b8;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;color:var(--tx);font:15px/1.45 "Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:-.011em;
+background:radial-gradient(700px 320px at 100% -60px,#ede9fe,transparent 70%),var(--bg)}
+main{max-width:980px;margin:0 auto;padding:22px 16px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.035em}
+.mu{color:var(--mu);font-size:13px}
+.hero{border-radius:24px;padding:22px;color:#fff;background:linear-gradient(135deg,var(--ac),var(--ac2));box-shadow:0 18px 40px rgba(79,70,229,.28);margin-bottom:16px;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.hero .big{font-size:48px;font-weight:800;letter-spacing:-.05em;line-height:1;font-variant-numeric:tabular-nums}
+.hero .l{opacity:.8;font-size:13px}
+.stats{display:flex;gap:10px}
+.stat{background:rgba(255,255,255,.16);border-radius:14px;padding:10px 14px;min-width:96px}
+.stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.bar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+.step{display:inline-flex;align-items:center;gap:10px;background:var(--sf);border:1px solid var(--bd);border-radius:999px;padding:4px 6px}
+.step span{min-width:92px;text-align:center;font-size:14px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr))}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 2px rgba(15,23,42,.04),0 10px 28px rgba(79,70,229,.06);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 1px 2px rgba(15,23,42,.04),0 16px 34px rgba(79,70,229,.12)}
+.head{display:flex;gap:14px;align-items:center}
+.ring{width:80px;height:80px;flex:none}
+.rt{font:800 17px "Inter",ui-sans-serif,system-ui,sans-serif;fill:var(--tx)}
+.name{font-weight:700;font-size:17px;letter-spacing:-.02em;word-break:break-word}
+.msg{border-radius:14px;padding:10px 12px;font-weight:600;font-size:14px;background:color-mix(in srgb,var(--c) 11%,transparent);color:var(--c)}
+.ok{--c:var(--ok)}.warn{--c:var(--warn)}.bad{--c:var(--bad)}.none{--c:var(--none)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto}
+button{font:inherit;cursor:pointer;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:999px;padding:10px 18px;transition:transform .12s,box-shadow .15s,background .15s}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,23,42,.08)}
+button:active:not(:disabled){transform:scale(.97)}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.pri{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:0;font-weight:700;box-shadow:0 6px 16px rgba(79,70,229,.3)}
+.pb,.ab{flex:1;font-weight:700;border-color:transparent}
+.pb{background:#dcfce7;color:#15803d}.ab{background:#fee2e2;color:#b91c1c}
+.pb:hover:not(:disabled){background:#bbf7d0}.ab:hover:not(:disabled){background:#fecaca}
+.sm{padding:6px 12px;font-size:13px}.ic{width:34px;height:34px;padding:0;font-size:18px;line-height:1}
+.dng{color:var(--bad);border-color:var(--bad)}
+.empty{grid-column:1/-1;text-align:center;padding:44px 16px;background:var(--sf);border:1px dashed var(--bd);border-radius:22px;color:var(--mu)}
+input{font:inherit;color:var(--tx);background:#f8f9fc;border:1px solid var(--bd);border-radius:12px;padding:11px 12px;width:100%;min-width:0}
+input:focus{outline:none;border-color:var(--ac);background:#fff;box-shadow:0 0 0 4px rgba(79,70,229,.15)}
+dialog{border:0;border-radius:24px;padding:22px;width:min(92vw,420px);color:var(--tx);background:var(--sf);box-shadow:0 30px 70px rgba(15,23,42,.3)}
+dialog::backdrop{background:rgba(15,23,42,.45);backdrop-filter:blur(3px)}
+dialog h2{margin:0 0 6px;font-size:19px}
+dialog label{display:block;font-size:12px;font-weight:600;color:var(--mu);margin:12px 0 4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err{color:var(--bad);font-size:13px;font-weight:600;min-height:18px;margin-top:10px}
+.end{justify-content:flex-end;margin-top:6px}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><h1>Attendance</h1><button class="pri" id="add" type="button">+ Add subject</button></div>
+
+<section class="hero" aria-label="Overall">
+  <div><div class="l">Overall attendance</div><div class="big" id="ov">—</div></div>
+  <div class="stats"><div class="stat"><span class="l">Subjects</span><b id="sn">0</b></div><div class="stat"><span class="l">Below target</span><b id="sl">0</b></div><div class="stat"><span class="l">Hours held</span><b id="sh">0</b></div></div>
+</section>
+
+<div class="bar">
+  <div class="step"><button class="ic" id="hm" type="button" aria-label="Fewer hours">−</button><span><b id="hv">1</b> hour per mark</span><button class="ic" id="hp" type="button" aria-label="More hours">+</button></div>
+  <span class="mu">Set the hours, then tap Present or Absent.</span>
+</div>
+
+<section class="grid" id="list" aria-live="polite"></section>
+<p class="mu">Saved in this browser only.</p>
+</main>
+
+<dialog id="dlg">
+<form id="form" novalidate>
+  <h2 id="dt">Add subject</h2>
+  <label for="n">Subject name</label><input id="n" maxlength="60" autocomplete="off" placeholder="e.g. Anatomy">
+  <label for="t">Target attendance % (1–100)</label><input id="t" inputmode="numeric" value="75">
+  <div class="two"><div><label for="a">Attended hours so far</label><input id="a" inputmode="numeric" value="0"></div><div><label for="c">Total hours so far</label><input id="c" inputmode="numeric" value="0"></div></div>
+  <div class="err" id="err" role="alert"></div>
+  <div class="row end"><button type="button" id="cx">Cancel</button><button class="pri" type="submit">Save</button></div>
+</form>
+</dialog>
+
+<script>
+(function(){
+"use strict";
+var K="attendance-v3",CIRC=226.19,S=[],pd=null,ed=null,H=1;
+var $=function(i){return document.getElementById(i)};
+function int(v,lo,hi,d){var n=Math.floor(Number(v));return isFinite(n)?Math.min(hi,Math.max(lo,n)):d}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function hr(n){return n+" hour"+(n===1?"":"s")}
+function pc(a,c){return c>0?(Math.floor(a*1000/c)/10).toFixed(1):"0.0"} // truncated: never rounds up to the target
+
+function load(){
+  try{
+    var d=JSON.parse(localStorage.getItem(K)||"[]");if(!Array.isArray(d))d=[];
+    S=d.filter(function(s){return s&&typeof s.name==="string"&&s.name.trim()}).map(function(s){
+      var c=int(s.c,0,1e5,0),a=Math.min(int(s.a,0,1e5,0),c);
+      return{id:String(s.id||uid()),name:s.name.trim().slice(0,60),t:int(s.t,1,100,75),a:a,c:c,u:[]};
+    });
+  }catch(e){S=[]}
+}
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+
+/* Whole-number math, so no rounding errors. t = target percent (1..100) */
+function status(s){
+  if(s.c<=0)return{k:"none",m:"Mark your first hour to see where you stand.",low:false};
+  var diff=100*s.a-s.t*s.c;                    // >= 0 means at or above target
+  if(diff>=0){
+    var miss=Math.floor(diff/s.t);             // hours you can still miss
+    return miss>0?{k:"ok",m:"You can miss "+hr(miss)+" and stay at "+s.t+"% or above.",low:false}
+                 :{k:"warn",m:"Right at target. Missing any hour drops you below "+s.t+"%.",low:false};
+  }
+  if(s.t>=100)return{k:"bad",m:"A 100% target can't be recovered after a missed hour.",low:true};
+  return{k:"bad",m:"Attend the next "+hr(Math.ceil(-diff/(100-s.t)))+" in a row to reach "+s.t+"%.",low:true};
+}
+
+function card(s){
+  var st=status(s),pct=s.c>0?s.a/s.c*100:0,col="var(--"+st.k+")";
+  var off=CIRC*(1-Math.min(100,pct)/100);
+  var del=pd===s.id?'<button class="sm dng" data-x="delc">Confirm</button><button class="sm" data-x="delx">Cancel</button>':'<button class="sm" data-x="del">Delete</button>';
+  return'<article class="card" data-id="'+esc(s.id)+'"><div class="head">'
+    +'<svg class="ring" viewBox="0 0 84 84" role="img" aria-label="'+pc(s.a,s.c)+' percent"><circle cx="42" cy="42" r="36" fill="none" stroke="#eceef6" stroke-width="7"/>'
+    +(pct>0?'<circle cx="42" cy="42" r="36" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+CIRC+'" stroke-dashoffset="'+off+'" transform="rotate(-90 42 42)"/>':"")
+    +'<line x1="42" y1="0" x2="42" y2="13" stroke="#0f172a" stroke-opacity=".55" stroke-width="2" transform="rotate('+(s.t*3.6)+' 42 42)"/>'
+    +'<text class="rt" x="42" y="47" text-anchor="middle">'+pc(s.a,s.c)+'%</text></svg>'
+    +'<div><div class="name">'+esc(s.name)+'</div><div class="mu">'+s.a+' of '+s.c+' hours · target '+s.t+'%</div></div></div>'
+    +'<div class="msg '+st.k+'">'+esc(st.m)+'</div>'
+    +'<div class="row"><button class="pb" data-x="P">Present</button><button class="ab" data-x="A">Absent</button></div>'
+    +'<div class="foot"><button class="sm" data-x="undo"'+(s.u.length?"":" disabled")+'>Undo</button><span class="row"><button class="sm" data-x="edit">Edit</button>'+del+'</span></div></article>';
+}
+
+function render(){
+  var A=0,C=0,low=0;
+  S.forEach(function(s){A+=s.a;C+=s.c;if(status(s).low)low++});
+  $("ov").textContent=C?pc(A,C)+"%":"—";$("sn").textContent=S.length;$("sl").textContent=low;$("sh").textContent=C;
+  $("list").innerHTML=S.length?S.map(card).join(""):'<div class="empty"><b>No subjects yet</b><br>Tap “+ Add subject” to start tracking.</div>';
+}
+
+$("list").addEventListener("click",function(ev){
+  var b=ev.target.closest("button[data-x]");if(!b)return;
+  var box=b.closest("[data-id]"),id=box&&box.getAttribute("data-id"),s=null;
+  S.forEach(function(z){if(z.id===id)s=z});if(!s)return;
+  var x=b.getAttribute("data-x");
+  if(x==="del"){pd=id;render();return}
+  if(x==="delx"){pd=null;render();return}
+  pd=null;
+  if(x==="edit"){openDlg(s);return}
+  if(x==="P"||x==="A"){var da=x==="P"?H:0;s.a+=da;s.c+=H;s.u.push([da,H]);if(s.u.length>50)s.u.shift()}
+  else if(x==="undo"){var l=s.u.pop();if(l){s.a=Math.max(0,s.a-l[0]);s.c=Math.max(0,s.c-l[1])}}
+  else if(x==="delc")S=S.filter(function(z){return z!==s});
+  save();render();
+});
+function step(d){H=int(H+d,1,12,1);$("hv").textContent=H}
+$("hm").onclick=function(){step(-1)};$("hp").onclick=function(){step(1)};
+
+function openDlg(s){
+  ed=s?s.id:null;$("dt").textContent=s?"Edit subject":"Add subject";
+  $("n").value=s?s.name:"";$("t").value=s?s.t:75;$("a").value=s?s.a:0;$("c").value=s?s.c:0;$("err").textContent="";
+  $("dlg").showModal();$("n").focus();
+}
+$("add").onclick=function(){openDlg(null)};
+$("cx").onclick=function(){$("dlg").close()};
+function num(v){v=String(v).trim();if(v==="")return 0;var n=Number(v);return Number.isInteger(n)&&n>=0&&n<=100000?n:NaN}
+$("form").addEventListener("submit",function(ev){
+  ev.preventDefault();
+  var name=$("n").value.trim(),tv=String($("t").value).trim(),t=Number(tv),a=num($("a").value),c=num($("c").value),e="";
+  if(!name)e="Enter a subject name.";
+  else if(S.some(function(s){return s.id!==ed&&s.name.toLowerCase()===name.toLowerCase()}))e="That subject already exists.";
+  else if(tv===""||!Number.isInteger(t)||t<1||t>100)e="Target must be a whole number from 1 to 100.";
+  else if(isNaN(a)||isNaN(c))e="Hours must be whole numbers (0 or more).";
+  else if(a>c)e="Attended hours can't be more than total hours.";
+  $("err").textContent=e;if(e)return;
+  var cur=null;S.forEach(function(s){if(s.id===ed)cur=s});
+  if(cur){cur.name=name;cur.t=t;cur.a=a;cur.c=c;cur.u=[]}
+  else S.push({id:uid(),name:name,t:t,a:a,c:c,u:[]});
+  $("dlg").close();save();render();
+});
+
+load();render();
+})();
+</script>
+</body>
+</html>

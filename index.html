@@ -56,6 +56,20 @@ dialog label{display:block;font-size:12px;font-weight:600;color:var(--mu);margin
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .err{color:var(--bad);font-size:13px;font-weight:600;min-height:18px;margin-top:10px}
 .end{justify-content:flex-end;margin-top:6px}
+/* mobile UI/UX fixes */
+:root{--none:#64748b}
+input{font-size:16px}
+.hero{flex-direction:column;align-items:stretch;gap:16px}
+.hero .big{font-size:44px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
+.stat{min-width:0;padding:10px 12px}
+.stat .l{display:block;font-size:12px;white-space:nowrap}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:none;z-index:15;padding:14px 22px;font-size:15px;box-shadow:0 10px 26px rgba(79,70,229,.45)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:#0f172a;color:#fff;border-radius:999px;padding:8px 8px 8px 16px;display:flex;align-items:center;gap:10px;font-size:14px;box-shadow:0 10px 30px rgba(15,23,42,.35);max-width:92vw;z-index:20}
+.toast[hidden]{display:none}
+.toast button{background:rgba(255,255,255,.16);color:#fff;border:0;padding:6px 14px;font-size:13px}
+@media (min-width:700px){.hero{flex-direction:row;align-items:center}.stats{width:auto;grid-template-columns:repeat(3,110px)}.hero .big{font-size:52px}}
+@media (max-width:640px){#add{display:none}.fab{display:inline-flex}main{padding-bottom:110px}.bar .mu{display:none}}
 </style>
 </head>
 <body>
@@ -68,7 +82,7 @@ dialog label{display:block;font-size:12px;font-weight:600;color:var(--mu);margin
 </section>
 
 <div class="bar">
-  <div class="step"><button class="ic" id="hm" type="button" aria-label="Fewer hours">−</button><span><b id="hv">1</b> hour per mark</span><button class="ic" id="hp" type="button" aria-label="More hours">+</button></div>
+  <div class="step"><button class="ic" id="hm" type="button" aria-label="Fewer hours">−</button><span id="hl">1 hour per mark</span><button class="ic" id="hp" type="button" aria-label="More hours">+</button></div>
   <span class="mu">Set the hours, then tap Present or Absent.</span>
 </div>
 
@@ -76,6 +90,8 @@ dialog label{display:block;font-size:12px;font-weight:600;color:var(--mu);margin
 <p class="mu">Saved in this browser only.</p>
 </main>
 
+<button class="pri fab" id="fab" type="button">+ Add subject</button>
+<div class="toast" id="toast" role="status" hidden></div>
 <dialog id="dlg">
 <form id="form" novalidate>
   <h2 id="dt">Add subject</h2>
@@ -90,7 +106,7 @@ dialog label{display:block;font-size:12px;font-weight:600;color:var(--mu);margin
 <script>
 (function(){
 "use strict";
-var K="attendance-v3",CIRC=226.19,S=[],pd=null,ed=null,H=1;
+var K="attendance-v3",HK="attendance-h",CIRC=226.19,S=[],pd=null,ed=null,H=1,tt=null,last=null;
 var $=function(i){return document.getElementById(i)};
 function int(v,lo,hi,d){var n=Math.floor(Number(v));return isFinite(n)?Math.min(hi,Math.max(lo,n)):d}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -129,18 +145,18 @@ function card(s){
   return'<article class="card" data-id="'+esc(s.id)+'"><div class="head">'
     +'<svg class="ring" viewBox="0 0 84 84" role="img" aria-label="'+pc(s.a,s.c)+' percent"><circle cx="42" cy="42" r="36" fill="none" stroke="#eceef6" stroke-width="7"/>'
     +(pct>0?'<circle cx="42" cy="42" r="36" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+CIRC+'" stroke-dashoffset="'+off+'" transform="rotate(-90 42 42)"/>':"")
-    +'<line x1="42" y1="0" x2="42" y2="13" stroke="#0f172a" stroke-opacity=".55" stroke-width="2" transform="rotate('+(s.t*3.6)+' 42 42)"/>'
+    +'<line x1="42" y1="1" x2="42" y2="11" stroke="#0f172a" stroke-opacity=".7" stroke-width="2.5" stroke-linecap="round" transform="rotate('+(s.t*3.6)+' 42 42)"/>'
     +'<text class="rt" x="42" y="47" text-anchor="middle">'+pc(s.a,s.c)+'%</text></svg>'
     +'<div><div class="name">'+esc(s.name)+'</div><div class="mu">'+s.a+' of '+s.c+' hours · target '+s.t+'%</div></div></div>'
     +'<div class="msg '+st.k+'">'+esc(st.m)+'</div>'
-    +'<div class="row"><button class="pb" data-x="P">Present</button><button class="ab" data-x="A">Absent</button></div>'
+    +'<div class="row"><button class="pb" data-x="P">Present · '+H+'h</button><button class="ab" data-x="A">Absent · '+H+'h</button></div>'
     +'<div class="foot"><button class="sm" data-x="undo"'+(s.u.length?"":" disabled")+'>Undo</button><span class="row"><button class="sm" data-x="edit">Edit</button>'+del+'</span></div></article>';
 }
 
 function render(){
   var A=0,C=0,low=0;
   S.forEach(function(s){A+=s.a;C+=s.c;if(status(s).low)low++});
-  $("ov").textContent=C?pc(A,C)+"%":"—";$("sn").textContent=S.length;$("sl").textContent=low;$("sh").textContent=C;
+  $("ov").textContent=pc(A,C)+"%";$("sn").textContent=S.length;$("sl").textContent=low;$("sh").textContent=C;
   $("list").innerHTML=S.length?S.map(card).join(""):'<div class="empty"><b>No subjects yet</b><br>Tap “+ Add subject” to start tracking.</div>';
 }
 
@@ -153,12 +169,16 @@ $("list").addEventListener("click",function(ev){
   if(x==="delx"){pd=null;render();return}
   pd=null;
   if(x==="edit"){openDlg(s);return}
-  if(x==="P"||x==="A"){var da=x==="P"?H:0;s.a+=da;s.c+=H;s.u.push([da,H]);if(s.u.length>50)s.u.shift()}
+  if(x==="P"||x==="A"){var da=x==="P"?H:0;s.a+=da;s.c+=H;s.u.push([da,H]);if(s.u.length>50)s.u.shift();toast(s,s.name+": "+(x==="P"?"Present":"Absent")+" "+H+"h")}
   else if(x==="undo"){var l=s.u.pop();if(l){s.a=Math.max(0,s.a-l[0]);s.c=Math.max(0,s.c-l[1])}}
   else if(x==="delc")S=S.filter(function(z){return z!==s});
   save();render();
 });
-function step(d){H=int(H+d,1,12,1);$("hv").textContent=H}
+function setH(n){H=int(n,1,12,1);$("hl").textContent=H+(H===1?" hour":" hours")+" per mark";try{localStorage.setItem(HK,H)}catch(e){}render()}
+function step(d){setH(H+d)}
+function undoFor(s){var l=s.u.pop();if(l){s.a=Math.max(0,s.a-l[0]);s.c=Math.max(0,s.c-l[1])}}
+function toast(s,m){last=s.id;var t=$("toast");t.innerHTML='<span>'+esc(m)+'</span><button type="button" id="tu">Undo</button>';t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true},4000)}
+$("toast").addEventListener("click",function(ev){if(!ev.target.closest("#tu"))return;var s=null;S.forEach(function(z){if(z.id===last)s=z});if(s){undoFor(s);save();render()}$("toast").hidden=true});
 $("hm").onclick=function(){step(-1)};$("hp").onclick=function(){step(1)};
 
 function openDlg(s){
@@ -166,7 +186,7 @@ function openDlg(s){
   $("n").value=s?s.name:"";$("t").value=s?s.t:75;$("a").value=s?s.a:0;$("c").value=s?s.c:0;$("err").textContent="";
   $("dlg").showModal();$("n").focus();
 }
-$("add").onclick=function(){openDlg(null)};
+$("add").onclick=function(){openDlg(null)};$("fab").onclick=function(){openDlg(null)};
 $("cx").onclick=function(){$("dlg").close()};
 function num(v){v=String(v).trim();if(v==="")return 0;var n=Number(v);return Number.isInteger(n)&&n>=0&&n<=100000?n:NaN}
 $("form").addEventListener("submit",function(ev){
@@ -184,7 +204,7 @@ $("form").addEventListener("submit",function(ev){
   $("dlg").close();save();render();
 });
 
-load();render();
+load();try{H=int(localStorage.getItem(HK),1,12,1)}catch(e){}setH(H);
 })();
 </script>
 </body>
